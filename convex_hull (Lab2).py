@@ -23,6 +23,9 @@ def convex_hull_2d_gift_wrapping(pts):
         elif pts[i][0] == pts[leftPoint][0]: # but if i'th x value  = min's x value, we tie break by checking y value
             if pts[i][1] > pts[leftPoint][1]: # leftmost point is higher y value
                 leftPoint = i
+                
+    newpts = [] #initialise new list to order
+    newpts.append(pts[leftPoint])
     
     # Forming lines with leftPoint and all other values, then checking if right side 
     for j in range(len(pts)): # j represents point we're forming line with, with leftPoint
@@ -33,17 +36,10 @@ def convex_hull_2d_gift_wrapping(pts):
             for k in range(len(pts)): # checks if k is in front or behind the line
                 if j == leftPoint or k == leftPoint: # again, ignores leftPoint indexes
                     pass
-                elif is_clockwise(leftPoint, j, k):
-                    
-                    
-                    
-                    
-                    
-                    
-                
-            
-    
-    
+                elif is_clockwise(pts[leftPoint], pts[j], pts[k]):
+                    newpts.append(pts[k])
+        
+    pts = newpts #replacing pts with ordered list
     return [pts[0]]
 
 # compute with divide and conquer method the convex hull of the points  
