@@ -15,31 +15,41 @@ def is_clockwise(a,b,c):
 # NOTE: pts comprises of sublists - ie. pts = [[4,5], [1,2], [3,4]]
 def convex_hull_2d_gift_wrapping(pts):
     
-    # Finding leftmost point
+        # Finding leftmost point
     leftPoint = 0 # index of leftmost point 
+    startingIndex = 0
     for i in range(1, len(pts)):
         if pts[i][0] < pts[leftPoint][0]: # iterate through each sublist. if i'th x value is smaller than min's x value, update min with i 
             leftPoint = i # since i'th x value is smaller than min's x value, we update min
         elif pts[i][0] == pts[leftPoint][0]: # but if i'th x value  = min's x value, we tie break by checking y value
             if pts[i][1] > pts[leftPoint][1]: # leftmost point is higher y value
                 leftPoint = i
-                
-    newpts = [] #initialise new list to order points
-    newpts.append(pts[leftPoint])
+                startingIndex = i
     
-    # Forming lines with leftPoint and all other values, then checking if right side 
-    for j in range(len(pts)): # j represents point we're forming line with, with leftPoint
-        if j == leftPoint: # making sure we don't choose the leftPoint again
-            pass
+    #1) Initialize p as leftmost point.
+    #2) Do following while we do not come back to the first (or leftmost) point.
+        #a) The next point q is the point such that the triplet (p, q, r) is counterclockwise for any other point r.
+        #b) next[p] = q (Store q as next of p in the output convex hull).
+        #c) p = q (Set p as q for next iteration).
+    endPoint = leftPoint
+    nextPoint = 0
+    newpts = [] #initialise new list to order points
+
+    while True:
+        newpts.append(endPoint) #append current endpoint value (which includes endpoint)        
+        nextPoint = endPoint + 1
         
-        else:
-            for k in range(len(pts)): # checks if k is in front or behind the line
-                if j == leftPoint or k == leftPoint: # again, ignores leftPoint indexes
-                    pass
-                elif is_clockwise(pts[leftPoint], pts[j], pts[k]):
-                    newpts.append(pts[k])
+        for i in range(len(pts)):
+            if is_clockwise(pts[leftPoint], pts[endPoint], pts[i]):
+                endPoint = i # start with new "start point"
         
-    pts = newpts #replacing pts with ordered list (newpts)
+        leftPoint = endPoint 
+        
+        if leftPoint ==  startingIndex: # If we reach the beginning, end the algorithm
+            break
+        
+    newnewpts = [pts[i] for i in newpts]
+    pts = newnewpts
     return [pts[0]]
 
 # compute with divide and conquer method the convex hull of the points  
@@ -50,7 +60,7 @@ def convex_hull_2d_divide_conquer(pts):
 
 NUMBER_OF_POINTS = 20
 
-# generate random points and sort them accoridng to x coordinate
+# generate random points and sort them according to x coordinate
 pts = []
 for i in range(NUMBER_OF_POINTS): pts.append([random.random(),random.random()]) 
 pts = sorted(pts, key=lambda x: x[0])
