@@ -8,86 +8,88 @@ def is_clockwise(a,b,c):
     if ((c[1] - a[1]) * (b[0] - a[0])) < ((b[1] - a[1]) * (c[0] - a[0])): # if (cy − ay) ∗ (bx − ax) < (by − ay) ∗ (cx − ax)
         return True # in clockwise order
     else:
-        return False # in not clockwise order 
+        return False # in not clockwise order. note this means that c is a better point for convex hull 
 
 # compute with naive method the convex hull of the points cloud pts     
 # and store it as a list of vectors
 # NOTE: pts comprises of sublists - ie. pts = [[4,5], [1,2], [3,4]]
 
 def convex_hull_2d_gift_wrapping(pts):
-    
-    # leftPoint = 0 # index of leftmost point 
-    # startingIndex = 0
-    # leftPoint = 0
-    # for i in range(1, len(pts)):
-    #     if pts[i][0] < pts[leftPoint][0]: # iterate through each sublist. if i'th x value is smaller than min's x value, update min with i 
-    #         leftPoint = i # since i'th x value is smaller than min's x value, we update min
-    #     elif pts[i][0] == pts[leftPoint][0]: # but if i'th x value  = min's x value, we tie break by checking y value
-    #         if pts[i][1] > pts[leftPoint][1]: # leftmost point is higher y value
-    #             leftPoint = i
     # Finding leftmost point
-    startPoint = min(pts) # naive method of finding leftmost point, not considering tiebreakers
+    leftPoint = min(pts) # naive method of finding leftmost point, not considering tiebreakers
     convexHull = []
-    currentPoint = startPoint
-    nextPoint = None
+    startPoint = leftPoint
+    endPoint = None
     
-    while nextPoint != startPoint:
-        convexHull.append(currentPoint) # adding left point as first hull point
-        nextPoint = pts[0]
-        for i in pts[1:]:
-            if nextPoint == currentPoint or is_clockwise(currentPoint, nextPoint, i ):
-                nextPoint = i
-        
-        currentPoint = nextPoint 
+    while endPoint != leftPoint: # repeats until we reach the first point again
+        convexHull.append(startPoint) # appends clockwise points i 
+        endPoint = pts[0] 
+        #print("added point ", pts.index(startPoint))
+        for i in pts[1:]: # for every [x,y] in pts
+            #print("next iteration")
+            if endPoint == startPoint or is_clockwise(startPoint, endPoint, i ):
+                 # if start = end we must update end to the next [x,y]
+                 # OR, if i is RHS of line formed by start and endpoint, we just make 
+                endPoint = i
+                #print("if loop, endPoint value is ", endPoint)
+        startPoint = endPoint 
+        #print("after for loop, startPoint value is ", startPoint)
                     
-    return convexHull        
+    return convexHull      
+# return [pts[0]] ?  
     
-    ###############################
-    ## ATTEMPT NUMBER 5000 BELOW ##
-    ###############################
-    
-    #1) Initialize p as leftmost point.
-    #2) Do following while we do not come back to the first (or leftmost) point.
-        #a) The next point q is the point such that the triplet (p, q, r) is counterclockwise for any other point r.
-        #b) next[p] = q (Store q as next of p in the output convex hull).
-        #c) p = q (Set p as q for next iteration).
-
-    # convexHull = [leftPoint] # adding first point into hull
-    # print(convexHull)
-    # counter = 0
-    # endPoint = 0
-    # print(endPoint)
-    
-    # while endPoint != convexHull[0]:
-    #     endPoint = pts[0] # initial endpoint for line (l, p)
-        
-    #     for i in range(len(pts)):
-    #         if endPoint == leftPoint or is_clockwise(convexHull[counter], endPoint, pts[i]) == False: # if haven't reached the end and is clockwise, update endpoint
-    #             endPoint = pts[i]
-        
-    #     counter += 1
-    #     leftPoint = endPoint
-    
-    # pts = convexHull
-    # return [pts]
-
 # compute with divide and conquer method the convex hull of the points  
 # cloud pts and store it as a list of vectors
 def convex_hull_2d_divide_conquer(pts):
-    
-    # if len(left) <= 4: #base case
-    #     convex_hull_2d_gift_wrapping(left)
-    #     # probably need to return solved left
+    if len(pts) <= 5: #base case
+        print("base case giftwrap", convex_hull_2d_gift_wrapping(pts))
+        return convex_hull_2d_gift_wrapping(pts)
         
-    # elif len(right) < 4:
-    #     convex_hull_2d_gift_wrapping(right)
-    #     # same thing, prob need return solved right
+    mid = len(pts)//2  
+    left = pts[:mid] # divides into halves
+    right = pts[mid:]
+    leftHull = convex_hull_2d_divide_conquer(left) # run divide conquer algorithm recursively until we reach base case and obtain convex hulls of small left and rights
+    rightHull = convex_hull_2d_divide_conquer(right)
+    print("leftHull", leftHull)
+    print("rightHull", rightHull)
+    print("max", max(leftHull))
+    print("min", min(rightHull))
     
-    # mid = len(pts)//2  
-    # left = convex_hull_2d_divide_conquer(pts[0:mid]) # divides into halves
-    # right = convex_hull_2d_divide_conquer(pts[mid:])
+    def merge(leftHull, rightHull):
+        rightmostPoint = max(leftHull, key = lambda p: p[0]) # of left hull, returns rightmost point by x coords
+        leftmostPoint = min(rightHull, key = lambda p: p[0]) # of right hull, returns leftmost point
+
+       # deriving upper tangent
+        for i in rightHull:
+            while is_clockwise(rightmostPoint, leftmostPoint, i): # repeat until we reach a point that is a better convex hull
+                # otherwise, keep removing unsuitable points until we reach point with better convex hull
+                if i in rightHull:
+                    rightHull.pop(rightHull.index(i)) # removes clockwise points because it's below line
+                    print("popping rightHull")
+                if len(rightHull) < 3:
+                    break
+                
+        # deriving lower tangent
+        leftHull.reverse() # REVERSE LIST SO THAT WE CAN ITERATE FROM RIGHTMOST POINT, remember to reverse back at the end
+        for j in leftHull:
+            while is_clockwise(leftmostPoint, rightmostPoint, j):
+                if j in leftHull:
+                    # again, removing unsuitable points until we reach point w better convex hull
+                    leftHull.pop(leftHull.index(j))
+                    print("popping leftHull")
+                if len(leftHull) < 3:
+                    break
+            
+        # after arranging left and right hull,
+        leftHull.reverse() # reverse list back to original
+        combinedHull = leftHull + rightHull + [leftmostPoint, rightmostPoint]# combining hulls at leftmost, rightmost point
         
-    return [pts[0]]
+        return combinedHull
+    
+    convexHull = merge(leftHull, rightHull)     
+    
+    return convexHull
+    #return [pts[0]]
 
 NUMBER_OF_POINTS = 20
 
@@ -124,6 +126,8 @@ if NUMBER_OF_POINTS<1000:
     ax = fig.add_subplot(133)
     ax.plot([x[0] for x in pts], [x[1] for x in pts], "ko")
     ax.plot([x[0] for x in hull_divide_conquer], [x[1] for x in hull_divide_conquer], "ro--")
+    # for (i, j) in pts:
+    #     plt.text(i, j, f'({i}, {j})')
     ax.title.set_text('Divide/Conquer')
     plt.show(block=False)
 
