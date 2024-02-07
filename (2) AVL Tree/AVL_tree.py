@@ -1,5 +1,3 @@
-
-
 # class that represents a tree node
 class Node:
     def __init__(self, height, left, right, key): # tree node implemented. assuming t = Node()
@@ -49,95 +47,154 @@ class AVL_tree:
     def rotation_tree(self,a,z,y,x):
         # refer to image from AVL tree rotations - (LL RR LR RL) youtube vid to know which child is t3
         # note that z, y, x are already initialised in position, ie. z is parent of y, y is parent of x
+
+        #########################################################################################################################################################
+        ### NOTE THAT left_rotate and right_rotate FUNCTIONS WORK ONLY WHEN THE ENDING NODE X HAS BOTH LEFT AND RIGHT CHILD, OTHERWISE WILL RECURR INFINITELY ###
+        #########################################################################################################################################################
         
-        # balance factor (condition for checking which case we should use)
-        #balanceFactor = self.compute_height(z.left) - self.compute_height(z.right) # finds balance factor (left subtree - right subtree), value will determine how we rotate
-        # think this doesn't really work because even in LR case, resulting trees have BF = 2, which means that we can't differ BF to determine rotation direction       
-        
-        # have to consider if a = z = root
+        def left_rotate(a, z, y, x):
+            t2 = y.left # stores t2, the left subtree of y
+            y.left = z # replace y's left with z subtree
+            
+            if t2 != None: # if t2 is not leaf, update z's right to be t2
+                z.right = t2 # sets z's right child as t2
+                if y.key > a.key:
+                    a.right = y
+                else:
+                    a.left = y
+
+        def right_rotate(a, z, y, x): # WORKING
+            t3 = y.right # stores t3 subtree, right child of y
+            y.right = z # sets y's right child as node z
+            if t3 != None: # if t3 is not leaf, update z's left to be t3
+                z.left = t3 
+                if y.key > a.key: # reattaches parent based on value of y
+                    a.right = y
+                else:
+                    a.left = y 
         
         # case 1: Right right case, left rotation 
         if x.key == y.right.key and y.key == z.right.key:
             print("right right case")
-            t2 = y.left.key # stores y's left child for later use
-            y.left = z # updates y's left to become z (which carries over z's child t1) 
-            z.right.key = t2 # carries y's child to z's right 
+            left_rotate(a, z, y, x)
+            # t2 = y.left.key # stores y's left child for later use
+            # y.left = z # updates y's left to become z (which carries over z's child t1) 
+            # z.right.key = t2 # carries y's child to z's right 
             
-            if y.key > a.key: # reattaching y's parent
-                a.right = y
-            else:
-                a.left = y
+            # if y.key > a.key: # reattaching y's parent
+            #     a.right = y
+            # else:
+            #     a.left = y
         
-        # case 2: Left left case, right rotation (WORKING)
+        # case 2: Left left case, right rotation 
         elif x.key == y.left.key and y.key == z.left.key:
             print("left left case")            
-            t3 = y.right.key # stores y's right child for later use
-            y.right = z # moves node z to y's right
-            z.left.key = t3 # attaches t3 to z's left
+            right_rotate(a, z, y, x)
             
-            if y.key > a.key: # reattaching y's parent
-                a.right = y
-            else:
-                a.left = y
+            #################
+            # if x.left == None or x.right == None: # if x has no left/right child, don't store t3 and just make z right child of y
+            #     if x.left == None:
+            #         t3 = y.right.key # stores y's right child as t3
+            #         y.right = z # makes z right child of y 
+            #         z.left.key = t3 # sets z's left as t3
+            #         x.left = None
+                    
+            #         if y.key > a.key: # reattaching x's parent
+            #             a.right = y
+            #         else:
+            #             a.left = y
+                    
+            #     elif x.right == None:
+            #         t3 = y.right.key # stores y's right child as t3
+            #         y.right = z # makes z right child of y 
+            #         z.left.key = t3 # sets z's left as t3
+            #         x.right = None
+                    
+            #         if y.key > a.key: # reattaching x's parent
+            #             a.right = y
+            #         else:
+            #             a.left = y                    
+                    
+            # elif x.left != None and x.right != None: # if x has a left/right child, then we need to store as t2, assign it to z
+            #     t3 = y.right.key # stores y's right child as t3
+            #     y.right = z # makes z right child of y 
+            #     z.left.key = t3 # sets z's left as t3 
                 
+            #     if y.key > a.key: # reattaching x's parent
+            #         a.right = y
+            #     else:
+            #         a.left = y                
+            
         ###############################################################################################
         ## NOTE THAT FROM HERE ON OUT, IT'S A CONCERN IF WE TAKE X LEFT/RIGHT KEY AS IT MAY BE NONE ###
         ###############################################################################################
         
-        # case 3: Left right case, left rotation then right rotation
+        # case 3: Left right case, left rotation then right rotation (WORKING)
         elif x.key == y.right.key and y.key == z.left.key:
             print("left right case")
-            # left rotation first
-            if x.left == None:
-                x.left = y
-                z.left = x
+            left_rotate(a, z, y, x)
+            right_rotate(a, z, x, y)
+            
+            
+            # # left rotation first
+            # if x.left == None: # if x has no left child, don't store t2 and just swap positions of x and y
+            #     x.left = y
+            #     z.left = x # reassigns parent of x to z
+            #     y.right = None
                 
-            else:         
-                t2 = x.left.key # stores t2 for later use           
-                x.left = y # swaps position of x and y
-                y.right.key = t2 # brings over x's left child as y's right
-                z.left = x # reattach x's parent
+            # else: # if x has a left child, then we need to store as t2, assign it to z
+            #     t2 = x.left.key # stores t2
+            #     x.left = y # swaps position of x and y
+            #     y.right.key = t2 # reassigns y's right to t2
+            #     z.left = x # reassigns parent of x to z
             
-            # right rotation
-            if x.right == None:
-                print("this part worked")                
-                x.right = z # swaps position of x and z
-                if x.key > a.key: # reattaching x's parent
-                    a.right = x
-                else:
-                    a.left = x
-            else:
-                t3 = x.right.key # stores x's right child for later use
-                x.right = z # swaps position of x and z
-                if x.key > a.key: # reattaching x's parent
-                    a.right = x
-                else:
-                    a.left = x        
-                    z.left.key = t3 # brings over x's right child to z's left 
+            # # right rotation
+            # if x.right == None: # if x has no right child, don't store as t3 and just swap positions of x and z
+            #     print("right rotation")
+            #     x.right = z
+            #     z.left = None
+                
+            #     if x.key > a.key: # reattaching x's parent
+            #         a.right = x
+            #     else:
+            #         a.left = x
+                    
             
-
-        
+            # else: # if x has right child, store as t3 and assign to z's left. swap positions of x and z
+            #     t3 = x.right.key
+            #     x.right = z
+            #     z.left.key = t3
+                
+            #     if x.key > a.key: # reattaching x's parent
+            #         a.right = x
+            #     else:
+            #         a.left = x                
+                        
         # case 4: Right left case, right rotation then left rotation:
         elif x.key == y.left.key and y.key == z.right.key:
             print("right left case")
-            # right rotation first
-            t3 = x.right.key # stores x's right child
-            x.right = y # swaps position of x and y 
-            y.left.key = t3 # updates y's left child to t3
-            z.right = x # reattach x's parent
+            right_rotate(a, z, y, x)
+            left_rotate(a, z, y, x)
             
-            # left rotation
-            t2 = x.left.key # store x's left
-            x.left = z # swaps x and z
-            z.right.key = t2 # updates child of z to t2
             
-            if x.key > a.key: # reattaching x's parent
-                a.right = x
-            else:
-                a.left = x
+        #     # right rotation first
+        #     t3 = x.right.key # stores x's right child
+        #     x.right = y # swaps position of x and y 
+        #     y.left.key = t3 # updates y's left child to t3
+        #     z.right = x # reattach x's parent
             
-        else:
-            print("none of the cases can be applied")
+        #     # left rotation
+        #     t2 = x.left.key # store x's left
+        #     x.left = z # swaps x and z
+        #     z.right.key = t2 # updates child of z to t2
+            
+        #     if x.key > a.key: # reattaching x's parent
+        #         a.right = x
+        #     else:
+        #         a.left = x
+            
+        # else:
+        #     print("none of the cases can be applied")
         
     #### NOTE FOR BELOW: .key might not be necessary if 55.left returns left key of 55 already    
         
