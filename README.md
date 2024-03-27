@@ -7,3 +7,5 @@
 * Implementing AVL tree
 * Implementing Quicksort, Heapsort
 * Implemented and compared Brute Force, Greedy Algorithm and Dynamic Programming for the Telescope Scheduling Problem
+* Depth and Breadth First Search approaches for traversing maze
+* Dijkstra's and Floyd Warshall's algorithm for finding shortest path through graphs
